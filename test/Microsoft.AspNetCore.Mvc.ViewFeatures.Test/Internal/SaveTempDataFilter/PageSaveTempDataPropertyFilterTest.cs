@@ -37,12 +37,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             provider.Subject = page;
 
-            var pageType = typeof(TestPageString);
+            var pageType = page.GetType();
 
             var testProp = pageType.GetProperty(nameof(TestPageString.Test));
+            var test2Prop = pageType.GetProperty(nameof(TestPageString.Test2));
 
             provider.TempDataProperties = new List<TempDataProperty>{
-                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue)
+                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),
+                new TempDataProperty(test2Prop, test2Prop.GetValue, test2Prop.SetValue)
             };
 
             // Act
@@ -159,10 +161,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             provider.Subject = page;
 
-            var pageType = typeof(TestPageString);
+            var pageType = page.GetType();
 
-            var testProp = pageType.GetProperty("Test");
-            var test2Prop = pageType.GetProperty("Test2");
+            var testProp = pageType.GetProperty(nameof(TestPageString.Test));
+            var test2Prop = pageType.GetProperty(nameof(TestPageString.Test2));
 
             provider.TempDataProperties = new List<TempDataProperty> {
                 new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),

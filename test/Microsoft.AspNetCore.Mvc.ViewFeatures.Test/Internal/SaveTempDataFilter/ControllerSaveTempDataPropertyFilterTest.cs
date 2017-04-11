@@ -27,9 +27,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var controller = new TestController();
 
-            var controllerType = typeof(TestController);
-            var testProp = controllerType.GetProperty("Test");
-            var test2Prop = controllerType.GetProperty("Test2");
+            var controllerType = controller.GetType();
+            var testProp = controllerType.GetProperty(nameof(TestController.Test));
+            var test2Prop = controllerType.GetProperty(nameof(TestController.Test2));
 
             filter.TempDataProperties = new List<TempDataProperty>
             {
@@ -72,9 +72,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var filter = CreateControllerSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             var controller = new TestController();
 
-            var controllerType = typeof(TestController);
-            var testProp = controllerType.GetProperty("Test");
-            var test2Prop = controllerType.GetProperty("Test2");
+            var controllerType = controller.GetType();
+            var testProp = controllerType.GetProperty(nameof(TestController.Test));
+            var test2Prop = controllerType.GetProperty(nameof(TestController.Test2));
 
             filter.TempDataProperties = new List<TempDataProperty> {
                 new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),
