@@ -17,7 +17,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public override object Subject {
             get => base.Subject;
-            set {
+            set
+            {
                 base.Subject = value;
                 SetTempDataProperties(value.GetType());
             }

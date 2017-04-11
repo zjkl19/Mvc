@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public static IList<TempDataProperty> GetTempDataProperties(Type type)
         {
-            IList<TempDataProperty> results = null;
+            List<TempDataProperty> results = null;
 
             var propertyHelpers = PropertyHelper.GetVisibleProperties(type: type);
 

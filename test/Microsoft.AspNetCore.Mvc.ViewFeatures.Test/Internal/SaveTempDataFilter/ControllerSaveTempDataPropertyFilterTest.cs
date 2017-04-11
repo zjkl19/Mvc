@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
-    public class ControllerSaveTempDataPropertyFilterTest : SaveTempDataPropertyFilterTestBase
+    public class ControllerSaveTempDataPropertyFilterTest
     {
         [Fact]
         public void PopulatesTempDataWithValuesFromControllerProperty()
@@ -27,7 +27,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var controller = new TestController();
 
-            filter.TempDataProperties = BuildTempDataProperties<TestController>();
+            var controllerType = typeof(TestController);
+            var testProp = controllerType.GetProperty("Test");
+            var test2Prop = controllerType.GetProperty("Test2");
+
+            filter.TempDataProperties = new List<TempDataProperty>
+            {
+                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),
+                new TempDataProperty(test2Prop, test2Prop.GetValue, test2Prop.SetValue)
+            };
+
             var context = new ActionExecutingContext(
                 new ActionContext
                 {
@@ -63,7 +72,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var filter = CreateControllerSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             var controller = new TestController();
 
-            filter.TempDataProperties = BuildTempDataProperties<TestController>();
+            var controllerType = typeof(TestController);
+            var testProp = controllerType.GetProperty("Test");
+            var test2Prop = controllerType.GetProperty("Test2");
+
+            filter.TempDataProperties = new List<TempDataProperty> {
+                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),
+                new TempDataProperty(test2Prop, test2Prop.GetValue, test2Prop.SetValue)
+            };
 
             var context = new ActionExecutingContext(
                 new ActionContext

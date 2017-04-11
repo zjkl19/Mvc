@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -13,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
-    public class PageSaveTempDataPropertyFilterTest : SaveTempDataPropertyFilterTestBase
+    public class PageSaveTempDataPropertyFilterTest
     {
         [Fact]
         public void OnTempDataSaving_PopulatesTempDataWithValuesFromPageProperty()
@@ -35,7 +36,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             provider.Subject = page;
-            provider.TempDataProperties = BuildTempDataProperties<TestPageString>();
+
+            var pageType = typeof(TestPageString);
+
+            var testProp = pageType.GetProperty(nameof(TestPageString.Test));
+
+            provider.TempDataProperties = new List<TempDataProperty>{
+                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue)
+            };
 
             // Act
             provider.OnTempDataSaving(tempData);
@@ -113,7 +121,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             provider.Subject = page;
-            provider.TempDataProperties = BuildTempDataProperties<TestPageString>();
+
+            var pageType = typeof(TestPageString);
+            var testProp = pageType.GetProperty("Test");
+            var test2Prop = pageType.GetProperty("Test2");
+
+            provider.TempDataProperties = new List<TempDataProperty> {
+                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),
+                new TempDataProperty(test2Prop, test2Prop.GetValue, test2Prop.SetValue)
+            };
 
             // Act
             provider.ApplyTempDataChanges(httpContext);
@@ -142,7 +158,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
             provider.Subject = page;
-            provider.TempDataProperties = BuildTempDataProperties<TestPageString>();
+
+            var pageType = typeof(TestPageString);
+
+            var testProp = pageType.GetProperty("Test");
+            var test2Prop = pageType.GetProperty("Test2");
+
+            provider.TempDataProperties = new List<TempDataProperty> {
+                new TempDataProperty(testProp, testProp.GetValue, testProp.SetValue),
+                new TempDataProperty(test2Prop, test2Prop.GetValue, test2Prop.SetValue)
+            };
 
             // Act
             provider.ApplyTempDataChanges(httpContext);
