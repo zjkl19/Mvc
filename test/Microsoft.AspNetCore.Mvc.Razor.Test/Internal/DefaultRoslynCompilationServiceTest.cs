@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
     public class DefaultRoslynCompilationServiceTest
     {
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_ReturnsCompilationResult()
         {
@@ -44,7 +44,7 @@ public class MyTestType  {}";
             Assert.Equal("MyTestType", result.CompiledType.Name);
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_ReturnsCompilationFailureWithPathsFromLinePragmas()
         {
@@ -74,7 +74,7 @@ this should fail";
             Assert.Equal(fileContent, compilationFailure.SourceFileContent);
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_ReturnsGeneratedCodePath_IfLinePragmaIsNotAvailable()
         {
@@ -103,7 +103,7 @@ this should fail";
             Assert.Equal(content, compilationFailure.SourceFileContent);
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_UsesApplicationsCompilationSettings_ForParsingAndCompilation()
         {
@@ -216,7 +216,7 @@ public class MyNonCustomDefinedClass {}
                 });
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_RunsCallback()
         {
@@ -240,7 +240,7 @@ public class MyNonCustomDefinedClass {}
             Assert.Single(usedCompilation.Compilation.SyntaxTrees);
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_DoesNotThrowIfReferencesWereClearedInCallback()
         {

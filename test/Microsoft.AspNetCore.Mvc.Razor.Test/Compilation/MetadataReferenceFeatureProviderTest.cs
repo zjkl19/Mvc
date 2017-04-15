@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             Assert.Empty(feature.MetadataReferences);
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void PopulateFeature_AddsMetadataReferenceForAssemblyPartsWithDependencyContext()
         {

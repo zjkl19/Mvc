@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             Assert.Equal(part.Assembly, assembly);
         }
 
-        [Fact]
+        [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void GetReferencePaths_ReturnsReferencesFromDependencyContext_IfPreserveCompilationContextIsSet()
         {
