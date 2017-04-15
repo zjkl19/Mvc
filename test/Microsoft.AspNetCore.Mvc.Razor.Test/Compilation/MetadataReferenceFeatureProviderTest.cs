@@ -27,6 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
         }
 
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void PopulateFeature_AddsMetadataReferenceForAssemblyPartsWithDependencyContext()
         {
             // Arrange

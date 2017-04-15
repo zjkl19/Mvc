@@ -20,6 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     public class DefaultRoslynCompilationServiceTest
     {
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_ReturnsCompilationResult()
         {
             // Arrange
@@ -43,6 +44,7 @@ public class MyTestType  {}";
         }
 
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_ReturnsCompilationFailureWithPathsFromLinePragmas()
         {
             // Arrange
@@ -72,6 +74,7 @@ this should fail";
         }
 
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_ReturnsGeneratedCodePath_IfLinePragmaIsNotAvailable()
         {
             // Arrange
@@ -100,6 +103,7 @@ this should fail";
         }
 
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_UsesApplicationsCompilationSettings_ForParsingAndCompilation()
         {
             // Arrange
@@ -212,6 +216,7 @@ public class MyNonCustomDefinedClass {}
         }
 
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_RunsCallback()
         {
             // Arrange
@@ -235,6 +240,7 @@ public class MyNonCustomDefinedClass {}
         }
 
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void Compile_DoesNotThrowIfReferencesWereClearedInCallback()
         {
             // Arrange

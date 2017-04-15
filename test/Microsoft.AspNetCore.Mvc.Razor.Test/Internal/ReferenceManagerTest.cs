@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.Internal
     public class ReferenceManagerTest
     {
         [Fact]
+        [OSSkipCondition(OperatingSystems.Linux, SkipReason = "https://github.com/aspnet/Mvc/issues/6138")]
         public void GetCompilationReferences_CombinesApplicationPartAndOptionMetadataReferences()
         {
             // Arrange
