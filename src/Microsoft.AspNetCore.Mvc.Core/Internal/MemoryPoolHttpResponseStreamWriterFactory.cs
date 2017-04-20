@@ -15,6 +15,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     /// </summary>
     public class MemoryPoolHttpResponseStreamWriterFactory : IHttpResponseStreamWriterFactory
     {
+        private static readonly string _defaultBufferSizeString =
+            Environment.GetEnvironmentVariable("Mvc_ResponseStreamBufferSize");
+
         /// <summary>
         /// The default size of buffers <see cref="HttpResponseStreamWriter"/>s will allocate.
         /// </summary>
@@ -26,7 +29,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         /// <see cref="MemoryPoolHttpResponseStreamWriterFactory"/> maintains <see cref="ArrayPool{T}"/>s
         /// for these arrays.
         /// </remarks>
-        public static readonly int DefaultBufferSize = 16 * 1024;
+        public static readonly int DefaultBufferSize = string.IsNullOrEmpty(_defaultBufferSizeString) ?
+            1024 :
+            int.Parse(_defaultBufferSizeString);
 
         private readonly ArrayPool<byte> _bytePool;
         private readonly ArrayPool<char> _charPool;
