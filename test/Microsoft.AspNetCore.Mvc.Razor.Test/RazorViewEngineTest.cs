@@ -80,6 +80,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             }
         }
 
+        [Fact]
+        public void GetAbsolutePath_HandlesDotSlash()
+        {
+            // Arrange
+            var viewEngine = CreateViewEngine();
+            var context = GetActionContext(_pageTestContext);
+
+            // Act
+            var result = viewEngine.GetAbsolutePath("/Accounts/Index", "./Create");
+
+            // Assert
+            Assert.Equal("/Accounts/Create", result);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]
