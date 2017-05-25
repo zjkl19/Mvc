@@ -89,13 +89,14 @@ namespace WebApiCompatShimWebSite
 
             return Request.CreateResponse<User>(HttpStatusCode.OK, user, new JsonMediaTypeFormatter(), "text/json");
         }
-
+#if NET461
         [HttpGet]
         public HttpResponseMessage Fail()
         {
             // This will perform content negotiation
             return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "It failed.");
         }
+#endif
 
         [HttpGet]
         public HttpResponseMessage ReturnByteArrayContent()

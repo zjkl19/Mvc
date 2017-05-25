@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#if NETSTANDARD2_0
+
 namespace System.Net.Http.Formatting
 {
     /// <summary>
@@ -43,3 +45,7 @@ namespace System.Net.Http.Formatting
         MatchOnRequestMediaType,
     }
 }
+#elif NET461
+#else
+#error target frameworks need to be updated.
+#endif

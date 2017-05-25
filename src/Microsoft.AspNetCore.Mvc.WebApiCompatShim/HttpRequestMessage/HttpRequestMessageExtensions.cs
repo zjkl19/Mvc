@@ -19,6 +19,7 @@ namespace System.Net.Http
     /// </summary>
     public static class HttpRequestMessageExtensions
     {
+#if NET461
         /// <summary>
         /// Helper method that performs content negotiation and creates a <see cref="HttpResponseMessage"/>
         /// representing an error with an instance of <see cref="ObjectContent{T}"/> wrapping an
@@ -53,7 +54,10 @@ namespace System.Net.Http
 
             return request.CreateErrorResponse(statusCode, new HttpError(message));
         }
-
+#elif NETSTANDARD2_0
+#else
+#error target frameworks needs to be updated.
+#endif
         /// <summary>
         /// Helper method that performs content negotiation and creates a <see cref="HttpResponseMessage"/>
         /// representing an error with an instance of <see cref="ObjectContent{T}"/> wrapping an

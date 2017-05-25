@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#if NETSTANDARD2_0
+
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 
@@ -36,3 +38,7 @@ namespace System.Net.Http.Formatting
             IEnumerable<MediaTypeFormatter> formatters);
     }
 }
+#elif NET461
+#else
+#error target frameworks need to be updated.
+#endif
