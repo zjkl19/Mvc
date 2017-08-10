@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Mvc;
+using MvcSandbox.Models;
 
 namespace MvcSandbox.Controllers
 {
@@ -12,7 +13,12 @@ namespace MvcSandbox.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            var model = new Container
+            {
+                MyClass = new MyClass(),
+            };
+
+            return View(model);
         }
     }
 }
