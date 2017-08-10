@@ -1,0 +1,5 @@
+﻿@using System
+@model Enum
+
+<select class="form-control" asp-for="@Model" asp-items="@Html.GetEnumSelectList(ViewData.ModelMetadata.UnderlyingOrModelType)">
+</select>

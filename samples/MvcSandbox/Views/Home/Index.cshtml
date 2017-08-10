@@ -1,4 +1,5 @@
-﻿@{
+﻿@model MvcSandbox.Models.Container
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -7,6 +8,10 @@
         <h2>Sandbox</h2>
         <ul>
             <li>This sandbox should give you a quick view of a basic MVC application.</li>
+        </ul>
+        <ul>
+            @Html.EditorFor(m => m.MyClass.PackingSize)
+            @Html.Editor("MyClass.PackingSize")
         </ul>
     </div>
 </div>
