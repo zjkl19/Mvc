@@ -265,13 +265,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {
                         Debug.Assert(state != null);
                         Debug.Assert(_authorizationContext != null);
+                        Debug.Assert(_authorizationContext.Result != null);
 
                         _logger.AuthorizationFailure((IFilterMetadata)state);
 
-                        // If an authorization filter short circuits, the result is the last thing we execute
-                        // so just return that task instead of calling back into the state machine.
-                        isCompleted = true;
-                        return InvokeResultAsync(_authorizationContext.Result);
+                        // This is a short-circuit - so jump to result filters
+                        _result = _authorizationContext.Result;
+                        goto case State.SuperResultBegin;
                     }
 
                 case State.AuthorizationEnd:
@@ -852,6 +852,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         goto case State.ResourceInsideEnd;
                     }
 
+
                 case State.ResourceInsideEnd:
                     {
                         if (scope == Scope.Resource)
@@ -889,6 +890,201 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 default:
                     throw new InvalidOperationException();
+            }
+        }
+
+        private Task NextShortCircuit(ref State next, ref Scope scope, ref object state, ref bool isCompleted)
+        {
+            switch (next)
+            {
+                case State.SuperResultBegin:
+                    {
+                        _cursor.Reset();
+                        goto case State.SuperResultNext;
+                    }
+
+                case State.SuperResultNext:
+                    {
+                        var current = _cursor.GetNextFilter<ISuperResultFilter, IAsyncSuperResultFilter>();
+                        if (current.FilterAsync != null)
+                        {
+                            if (_resultExecutingContext == null)
+                            {
+                                _resultExecutingContext = new ResultExecutingContext(_actionContext, _filters, _result, _instance);
+                            }
+
+                            state = current.FilterAsync;
+                            goto case State.SuperResultAsyncBegin;
+                        }
+                        else if (current.Filter != null)
+                        {
+                            if (_resultExecutingContext == null)
+                            {
+                                _resultExecutingContext = new ResultExecutingContext(_actionContext, _filters, _result, _instance);
+                            }
+
+                            state = current.Filter;
+                            goto case State.SuperResultSyncBegin;
+                        }
+                        else
+                        {
+                            goto case State.SuperResultInside;
+                        }
+                    }
+
+                case State.SuperResultAsyncBegin:
+                    {
+                        Debug.Assert(state != null);
+                        Debug.Assert(_resultExecutingContext != null);
+
+                        var filter = (IAsyncSuperResultFilter)state;
+                        var resultExecutingContext = _resultExecutingContext;
+
+                        _diagnosticSource.BeforeOnResultExecution(resultExecutingContext, filter);
+
+                        var task = filter.OnResultExecutionAsync(resultExecutingContext, InvokeNextResultFilterAwaitedAsync);
+                        if (task.Status != TaskStatus.RanToCompletion)
+                        {
+                            next = State.SuperResultAsyncEnd;
+                            return task;
+                        }
+
+                        goto case State.SuperResultAsyncEnd;
+                    }
+
+                case State.SuperResultAsyncEnd:
+                    {
+                        Debug.Assert(state != null);
+                        Debug.Assert(_resultExecutingContext != null);
+
+                        var filter = (IAsyncSuperResultFilter)state;
+                        var resultExecutingContext = _resultExecutingContext;
+                        var resultExecutedContext = _resultExecutedContext;
+
+                        if (resultExecutedContext == null || resultExecutingContext.Cancel)
+                        {
+                            // Short-circuited by not calling next || Short-circuited by setting Cancel == true
+                            _logger.ResultFilterShortCircuited(filter);
+
+                            _resultExecutedContext = new ResultExecutedContext(
+                                _actionContext,
+                                _filters,
+                                resultExecutingContext.Result,
+                                _instance)
+                            {
+                                Canceled = true,
+                            };
+                        }
+
+                        _diagnosticSource.AfterOnResultExecution(_resultExecutedContext, filter);
+                        goto case State.SuperResultEnd;
+                    }
+
+                case State.SuperResultSyncBegin:
+                    {
+                        Debug.Assert(state != null);
+                        Debug.Assert(_resultExecutingContext != null);
+
+                        var filter = (ISuperResultFilter)state;
+                        var resultExecutingContext = _resultExecutingContext;
+
+                        _diagnosticSource.BeforeOnResultExecuting(resultExecutingContext, filter);
+
+                        filter.OnResultExecuting(resultExecutingContext);
+
+                        _diagnosticSource.AfterOnResultExecuting(resultExecutingContext, filter);
+
+                        if (_resultExecutingContext.Cancel)
+                        {
+                            // Short-circuited by setting Cancel == true
+                            _logger.ResultFilterShortCircuited(filter);
+
+                            _resultExecutedContext = new ResultExecutedContext(
+                                resultExecutingContext,
+                                _filters,
+                                resultExecutingContext.Result,
+                                _instance)
+                            {
+                                Canceled = true,
+                            };
+
+                            goto case State.SuperResultEnd;
+                        }
+
+                        var task = InvokeNextResultFilterAsync();
+                        if (task.Status != TaskStatus.RanToCompletion)
+                        {
+                            next = State.SuperResultSyncEnd;
+                            return task;
+                        }
+
+                        goto case State.SuperResultSyncEnd;
+                    }
+
+                case State.SuperResultSyncEnd:
+                    {
+                        Debug.Assert(state != null);
+                        Debug.Assert(_resultExecutingContext != null);
+                        Debug.Assert(_resultExecutedContext != null);
+
+                        var filter = (ISuperResultFilter)state;
+                        var resultExecutedContext = _resultExecutedContext;
+
+                        _diagnosticSource.BeforeOnResultExecuted(resultExecutedContext, filter);
+
+                        filter.OnResultExecuted(resultExecutedContext);
+
+                        _diagnosticSource.AfterOnResultExecuted(resultExecutedContext, filter);
+
+                        goto case State.SuperResultEnd;
+                    }
+
+                case State.SuperResultInside:
+                    {
+                        // If we executed result filters then we need to grab the result from there.
+                        if (_resultExecutingContext != null)
+                        {
+                            _result = _resultExecutingContext.Result;
+                        }
+
+                        if (_result == null)
+                        {
+                            // The empty result is always flowed back as the 'executed' result if we don't have one.
+                            _result = new EmptyResult();
+                        }
+
+                        var task = InvokeResultAsync(_result);
+                        if (task.Status != TaskStatus.RanToCompletion)
+                        {
+                            next = State.SuperResultEnd;
+                            return task;
+                        }
+
+                        goto case State.SuperResultEnd;
+                    }
+
+                case State.SuperResultEnd:
+                    {
+                        var result = _result;
+
+                        if (scope == Scope.Result)
+                        {
+                            if (_resultExecutedContext == null)
+                            {
+                                _resultExecutedContext = new ResultExecutedContext(_actionContext, _filters, result, _instance);
+                            }
+
+                            isCompleted = true;
+                            return Task.CompletedTask;
+                        }
+
+                        Rethrow(_resultExecutedContext);
+
+                        goto case State.ResourceInsideEnd;
+                    }
+
+                default:
+                    throw new InvalidOperationException(); // Unreachable.
             }
         }
 
@@ -1000,6 +1196,52 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             await InvokeNextResultFilterAsync();
+
+            Debug.Assert(_resultExecutedContext != null);
+            return _resultExecutedContext;
+        }
+
+        private async Task InvokeNextSuperResultFilterAsync()
+        {
+            try
+            {
+                var next = State.ResultNext;
+                var state = (object)null;
+                var scope = Scope.Result;
+                var isCompleted = false;
+                while (!isCompleted)
+                {
+                    await Next(ref next, ref scope, ref state, ref isCompleted);
+                }
+            }
+            catch (Exception exception)
+            {
+                _resultExecutedContext = new ResultExecutedContext(_actionContext, _filters, _result, _instance)
+                {
+                    ExceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception),
+                };
+            }
+
+            Debug.Assert(_resultExecutedContext != null);
+        }
+
+        private async Task<ResultExecutedContext> InvokeNextSuperResultFilterAwaitedAsync()
+        {
+            Debug.Assert(_resultExecutingContext != null);
+            if (_resultExecutingContext.Cancel)
+            {
+                // If we get here, it means that an async filter set cancel == true AND called next().
+                // This is forbidden.
+                var message = Resources.FormatAsyncResultFilter_InvalidShortCircuit(
+                    typeof(IAsyncResultFilter).Name,
+                    nameof(ResultExecutingContext.Cancel),
+                    typeof(ResultExecutingContext).Name,
+                    typeof(ResultExecutionDelegate).Name);
+
+                throw new InvalidOperationException(message);
+            }
+
+            await InvokeNextSuperResultFilterAsync();
 
             Debug.Assert(_resultExecutedContext != null);
             return _resultExecutedContext;
@@ -1122,6 +1364,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ResultSyncEnd,
             ResultInside,
             ResultEnd,
+            SuperResultBegin,
+            SuperResultNext,
+            SuperResultAsyncBegin,
+            SuperResultAsyncEnd,
+            SuperResultSyncBegin,
+            SuperResultSyncEnd,
+            SuperResultInside,
+            SuperResultEnd,
             InvokeEnd,
         }
     }
