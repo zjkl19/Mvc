@@ -207,7 +207,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         private Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
         {
             var indexPropertyName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, "index");
-            var valueProviderResultIndex = bindingContext.ValueProvider.GetValue(indexPropertyName);
+            var valueProvider = bindingContext.ValueProvider;
+            if (valueProvider is CompositeValueProvider compositeProvider)
+            {
+                var valueProviders = new List<IValueProvider>(compositeProvider.Count - 1);
+                foreach (var innerProvider in compositeProvider)
+                {
+                    if (!(innerProvider is JQueryFormValueProvider))
+                    {
+                        valueProviders.Add(innerProvider);
+                    }
+
+                    valueProvider = new CompositeValueProvider(valueProviders);
+                }
+            }
+
+            var valueProviderResultIndex = valueProvider.GetValue(indexPropertyName);
             var indexNames = GetIndexNamesFromValueProviderResult(valueProviderResultIndex);
 
             return BindComplexCollectionFromIndexes(bindingContext, indexNames);

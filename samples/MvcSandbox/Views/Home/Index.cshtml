@@ -1,12 +1,63 @@
-﻿@{
+﻿@using MvcSandbox.Models
+@model TestViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="row">
-    <div class="col-md-3">
+<div class="row" style="margin-top:60px">
+    <div class="col-md-8">
         <h2>Sandbox</h2>
         <ul>
             <li>This sandbox should give you a quick view of a basic MVC application.</li>
         </ul>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            @foreach (var kv in Model.Dict)
+            {
+                @*
+                string name = $"{Html.NameFor(m => m.Dict[kv.Key])}";
+                string id = System.Text.RegularExpressions.Regex.Replace(name, "[^a-zA-Z0-9]", "_");
+                *@
+
+                <div class="form-group">
+                    <label asp-for="Dict[kv.Key]" class="col-md-2 control-label"></label>
+                    <div class="col-md-10" style="min-height: 34px;">
+                        @*<input name="@name" id="@id" class="form-control" value="@kv.Value" type="number" />*@
+                        <input asp-for="Dict[kv.Key]" class="form-control" type="number" />
+                    </div>
+                </div>
+            }
+
+            <input type="submit" value="Save" />
+            <span class="text-primary">@Model.Result</span>
+
+        </form>
+    </div>
+</div>
+@*
+    @{ var index = 0; }
+    @foreach (var kv in Model.Dict)
+    {
+        var name = $"{Html.NameFor(m => m.Dict)}[{index}]";
+        var id = System.Text.RegularExpressions.Regex.Replace(name, "[^a-zA-Z0-9]", "_");
+        var keyName = name + ".Key";
+        var keyId = id + "_Key";
+        var valueName = name + ".Value";
+        var valueId = id + "_Value";
+
+        <input name="@keyName" id="@keyId" type="hidden" value="@kv.Key" />
+        <div class="form-group">
+            <label for="@id" class="col-md-2 control-label">@kv.Key</label>
+            <div class="col-md-10" style="min-height: 34px;">
+                <input name="@valueName" id="@valueId" class="form-control" value="@kv.Value" type="number" />
+                <!-- input asp-for="Dict[kv.Key]" class="form-control" type="number" / -->
+            </div>
+        </div>
+
+        index++;
+    }
+*@
