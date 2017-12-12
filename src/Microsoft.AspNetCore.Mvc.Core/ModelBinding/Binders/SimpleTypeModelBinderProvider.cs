@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -10,6 +11,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class SimpleTypeModelBinderProvider : IModelBinderProvider
     {
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
+
+        public SimpleTypeModelBinderProvider()
+        {
+        }
+
+        public SimpleTypeModelBinderProvider(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
@@ -20,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             if (!context.Metadata.IsComplexType)
             {
-                return new SimpleTypeModelBinder(context.Metadata.ModelType);
+                return new SimpleTypeModelBinder(context.Metadata.ModelType, _loggerFactory);
             }
 
             return null;

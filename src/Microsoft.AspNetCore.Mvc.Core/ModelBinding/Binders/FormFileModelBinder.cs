@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -18,6 +20,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class FormFileModelBinder : IModelBinder
     {
+        private readonly ILogger _logger;
+
+        public FormFileModelBinder()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public FormFileModelBinder(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public async Task BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -30,6 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             if (!createFileCollection && !ModelBindingHelper.CanGetCompatibleCollection<IFormFile>(bindingContext))
             {
                 // Silently fail if unable to create an instance or use the current instance.
+                _logger.LogDebug("Could not bind to model type {ModelType}. Supported model types are...");
                 return;
             }
 
@@ -58,6 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 if (postedFiles.Count == 0)
                 {
                     // Silently fail if the named file does not exist in the request.
+                    _logger.LogDebug("Could not find a file with name {modelName} in the request. The file name look up is case-insensitive.");
                     return;
                 }
 
@@ -111,22 +127,24 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             ICollection<IFormFile> postedFiles)
         {
             var request = bindingContext.HttpContext.Request;
-            if (request.HasFormContentType)
+            if (!request.HasFormContentType)
             {
-                var form = await request.ReadFormAsync();
+                _logger.LogDebug("Request content type is not form content type");
+                return;
+            }
 
-                foreach (var file in form.Files)
+            var form = await request.ReadFormAsync();
+            foreach (var file in form.Files)
+            {
+                // If there is an <input type="file" ... /> in the form and is left blank.
+                if (file.Length == 0 && string.IsNullOrEmpty(file.FileName))
                 {
-                    // If there is an <input type="file" ... /> in the form and is left blank.
-                    if (file.Length == 0 && string.IsNullOrEmpty(file.FileName))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    if (file.Name.Equals(modelName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        postedFiles.Add(file);
-                    }
+                if (file.Name.Equals(modelName, StringComparison.OrdinalIgnoreCase))
+                {
+                    postedFiles.Add(file);
                 }
             }
         }

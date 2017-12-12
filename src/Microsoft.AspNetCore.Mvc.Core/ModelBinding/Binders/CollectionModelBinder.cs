@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -21,6 +23,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// <typeparam name="TElement">Type of elements in the collection.</typeparam>
     public class CollectionModelBinder<TElement> : ICollectionModelBinder
     {
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
         private Func<object> _modelCreator;
 
         /// <summary>
@@ -28,6 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// </summary>
         /// <param name="elementBinder">The <see cref="IModelBinder"/> for binding elements.</param>
         public CollectionModelBinder(IModelBinder elementBinder)
+            : this(elementBinder, new NullLoggerFactory())
         {
             if (elementBinder == null)
             {
@@ -38,9 +43,27 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         }
 
         /// <summary>
+        /// Creates a new <see cref="CollectionModelBinder{TElement}"/>.
+        /// </summary>
+        /// <param name="elementBinder">The <see cref="IModelBinder"/> for binding elements.</param>
+        /// <param name="loggerFactory"></param>
+        public CollectionModelBinder(IModelBinder elementBinder, ILoggerFactory loggerFactory)
+        {
+            if (elementBinder == null)
+            {
+                throw new ArgumentNullException(nameof(elementBinder));
+            }
+
+            ElementBinder = elementBinder;
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger(GetType());
+        }
+
+        /// <summary>
         /// Gets the <see cref="IModelBinder"/> instances for binding collection elements.
         /// </summary>
         protected IModelBinder ElementBinder { get; }
+
 
         /// <inheritdoc />
         public virtual async Task BindModelAsync(ModelBindingContext bindingContext)

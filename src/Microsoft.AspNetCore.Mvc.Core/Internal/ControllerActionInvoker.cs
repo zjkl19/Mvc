@@ -428,6 +428,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             if (actionDescriptor.BoundProperties.Count == 0 &&
                 actionDescriptor.Parameters.Count == 0)
             {
+                _logger.NoParametersOrPropertiesToBind();
                 return Task.CompletedTask;
             }
 

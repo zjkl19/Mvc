@@ -3,6 +3,8 @@
 
 using System;
 using System.Globalization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -12,9 +14,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class EnumTypeModelBinder : SimpleTypeModelBinder
     {
         private readonly bool _allowBindingUndefinedValueToEnumType;
+        private readonly ILogger _logger;
 
         public EnumTypeModelBinder(bool allowBindingUndefinedValueToEnumType, Type modelType)
-            : base(modelType)
+            : this(allowBindingUndefinedValueToEnumType, modelType, new NullLoggerFactory())
         {
             if (modelType == null)
             {
@@ -22,6 +25,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             _allowBindingUndefinedValueToEnumType = allowBindingUndefinedValueToEnumType;
+        }
+
+        public EnumTypeModelBinder(
+            bool allowBindingUndefinedValueToEnumType,
+            Type modelType,
+            ILoggerFactory loggerFactory)
+            : base(modelType, loggerFactory)
+        {
+            if (modelType == null)
+            {
+                throw new ArgumentNullException(nameof(modelType));
+            }
+
+            _allowBindingUndefinedValueToEnumType = allowBindingUndefinedValueToEnumType;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         protected override void CheckModel(

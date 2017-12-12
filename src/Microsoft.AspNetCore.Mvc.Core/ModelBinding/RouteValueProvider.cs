@@ -5,6 +5,8 @@ using System;
 using System.Globalization;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -36,6 +38,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="values">The values.</param>
         /// <param name="culture">The culture for route value.</param>
         public RouteValueProvider(BindingSource bindingSource, RouteValueDictionary values, CultureInfo culture)
+            : this(bindingSource, values, culture, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="RouteValueProvider"/>. 
+        /// </summary>
+        /// <param name="bindingSource">The <see cref="BindingSource"/> of the data.</param>
+        /// <param name="values">The values.</param>
+        /// <param name="culture">The culture for route value.</param>
+        /// <param name="loggerFactory"></param>
+        public RouteValueProvider(
+            BindingSource bindingSource, 
+            RouteValueDictionary values, 
+            CultureInfo culture,
+            ILoggerFactory loggerFactory)
             : base(bindingSource)
         {
             if (bindingSource == null)
@@ -55,6 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             _values = values;
             Culture = culture;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         protected PrefixContainer PrefixContainer
@@ -71,6 +90,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         protected CultureInfo Culture { get; }
+
+        private readonly ILogger _logger;
 
         /// <inheritdoc />
         public override bool ContainsPrefix(string key)

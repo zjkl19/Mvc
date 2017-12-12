@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -17,6 +19,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class JQueryFormValueProviderFactory : IValueProviderFactory
     {
+        private readonly ILoggerFactory _loggerFactory;
+
+        public JQueryFormValueProviderFactory()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public JQueryFormValueProviderFactory(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+        }
+
         /// <inheritdoc />
         public Task CreateValueProviderAsync(ValueProviderFactoryContext context)
         {
@@ -41,7 +55,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var valueProvider = new JQueryFormValueProvider(
                 BindingSource.Form,
                 await GetValueCollectionAsync(request),
-                CultureInfo.CurrentCulture);
+                CultureInfo.CurrentCulture,
+                _loggerFactory);
 
             context.ValueProviders.Add(valueProvider);
         }

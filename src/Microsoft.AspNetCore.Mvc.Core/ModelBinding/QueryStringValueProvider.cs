@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -15,6 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class QueryStringValueProvider : BindingSourceValueProvider, IEnumerableValueProvider
     {
         private readonly CultureInfo _culture;
+        private readonly ILogger _logger;
         private readonly IQueryCollection _values;
         private PrefixContainer _prefixContainer;
 
@@ -28,6 +31,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             BindingSource bindingSource,
             IQueryCollection values,
             CultureInfo culture)
+            : this(bindingSource, values, culture, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Creates a value provider for <see cref="IQueryCollection"/>.
+        /// </summary>
+        /// <param name="bindingSource">The <see cref="BindingSource"/> for the data.</param>
+        /// <param name="values">The key value pairs to wrap.</param>
+        /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
+        /// <param name="loggerFactory"></param>
+        public QueryStringValueProvider(
+            BindingSource bindingSource,
+            IQueryCollection values,
+            CultureInfo culture,
+            ILoggerFactory loggerFactory)
             : base(bindingSource)
         {
             if (bindingSource == null)
@@ -42,6 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             _values = values;
             _culture = culture;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         public CultureInfo Culture => _culture;

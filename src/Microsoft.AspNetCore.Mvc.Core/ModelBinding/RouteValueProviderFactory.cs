@@ -3,6 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -11,6 +13,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class RouteValueProviderFactory : IValueProviderFactory
     {
+        private readonly ILoggerFactory _loggerFactory;
+
+        public RouteValueProviderFactory()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public RouteValueProviderFactory(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+        }
+
         /// <inheritdoc />
         public Task CreateValueProviderAsync(ValueProviderFactoryContext context)
         {
@@ -21,7 +35,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             var valueProvider = new RouteValueProvider(
                 BindingSource.Path,
-                context.ActionContext.RouteData.Values);
+                context.ActionContext.RouteData.Values,
+                _loggerFactory);
 
             context.ValueProviders.Add(valueProvider);
 

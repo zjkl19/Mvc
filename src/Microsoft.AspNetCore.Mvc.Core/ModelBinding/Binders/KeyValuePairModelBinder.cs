@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -17,6 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     {
         private readonly IModelBinder _keyBinder;
         private readonly IModelBinder _valueBinder;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a new <see cref="KeyValuePair{TKey, TValue}"/>.
@@ -24,6 +27,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// <param name="keyBinder">The <see cref="IModelBinder"/> for <typeparamref name="TKey"/>.</param>
         /// <param name="valueBinder">The <see cref="IModelBinder"/> for <typeparamref name="TValue"/>.</param>
         public KeyValuePairModelBinder(IModelBinder keyBinder, IModelBinder valueBinder)
+            : this(keyBinder, valueBinder, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="keyBinder">The <see cref="IModelBinder"/> for <typeparamref name="TKey"/>.</param>
+        /// <param name="valueBinder">The <see cref="IModelBinder"/> for <typeparamref name="TValue"/>.</param>
+        /// <param name="loggerFactory"></param>
+        public KeyValuePairModelBinder(IModelBinder keyBinder, IModelBinder valueBinder, ILoggerFactory loggerFactory)
         {
             if (keyBinder == null)
             {
@@ -37,6 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             _keyBinder = keyBinder;
             _valueBinder = valueBinder;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />

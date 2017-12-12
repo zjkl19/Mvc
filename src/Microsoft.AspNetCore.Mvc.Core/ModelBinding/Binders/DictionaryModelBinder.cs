@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -20,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class DictionaryModelBinder<TKey, TValue> : CollectionModelBinder<KeyValuePair<TKey, TValue>>
     {
         private readonly IModelBinder _valueBinder;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a new <see cref="DictionaryModelBinder{TKey, TValue}"/>.
@@ -27,7 +30,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// <param name="keyBinder">The <see cref="IModelBinder"/> for <typeparamref name="TKey"/>.</param>
         /// <param name="valueBinder">The <see cref="IModelBinder"/> for <typeparamref name="TValue"/>.</param>
         public DictionaryModelBinder(IModelBinder keyBinder, IModelBinder valueBinder)
-            : base(new KeyValuePairModelBinder<TKey, TValue>(keyBinder, valueBinder))
+            : this(keyBinder, valueBinder, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DictionaryModelBinder{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="keyBinder">The <see cref="IModelBinder"/> for <typeparamref name="TKey"/>.</param>
+        /// <param name="valueBinder">The <see cref="IModelBinder"/> for <typeparamref name="TValue"/>.</param>
+        /// <param name="loggerFactory"></param>
+        public DictionaryModelBinder(IModelBinder keyBinder, IModelBinder valueBinder, ILoggerFactory loggerFactory)
+            : base(new KeyValuePairModelBinder<TKey, TValue>(keyBinder, valueBinder), loggerFactory)
         {
             if (valueBinder == null)
             {
@@ -35,6 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             _valueBinder = valueBinder;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />

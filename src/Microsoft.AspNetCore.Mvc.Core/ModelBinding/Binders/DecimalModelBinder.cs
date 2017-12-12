@@ -5,6 +5,8 @@ using System;
 using System.Globalization;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -15,10 +17,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class DecimalModelBinder : IModelBinder
     {
         private readonly NumberStyles _supportedStyles;
+        private readonly ILogger _logger;
 
         public DecimalModelBinder(NumberStyles supportedStyles)
+            : this(supportedStyles, new NullLoggerFactory())
+        {
+        }
+
+        public DecimalModelBinder(NumberStyles supportedStyles, ILoggerFactory loggerFactory)
         {
             _supportedStyles = supportedStyles;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />

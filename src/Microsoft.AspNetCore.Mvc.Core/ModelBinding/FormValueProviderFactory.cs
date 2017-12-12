@@ -4,6 +4,8 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -12,6 +14,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class FormValueProviderFactory : IValueProviderFactory
     {
+        private readonly ILogger _logger;
+
+        public FormValueProviderFactory()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public FormValueProviderFactory(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public Task CreateValueProviderAsync(ValueProviderFactoryContext context)
         {

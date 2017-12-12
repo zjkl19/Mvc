@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -21,7 +23,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// The <see cref="IModelBinder"/> for binding <typeparamref name="TElement"/>.
         /// </param>
         public ArrayModelBinder(IModelBinder elementBinder)
-            : base(elementBinder)
+            : this(elementBinder, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ArrayModelBinder{TElement}"/>.
+        /// </summary>
+        /// <param name="elementBinder">
+        /// The <see cref="IModelBinder"/> for binding <typeparamref name="TElement"/>.
+        /// </param>
+        /// <param name="loggerFactory"></param>
+        public ArrayModelBinder(IModelBinder elementBinder, ILoggerFactory loggerFactory)
+            : base(elementBinder, loggerFactory)
         {
         }
 

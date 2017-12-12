@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -27,6 +29,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             BindingSource bindingSource,
             IDictionary<string, StringValues> values,
             CultureInfo culture)
+            : this(bindingSource, values, culture, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JQueryFormValueProvider"/> class.
+        /// </summary>
+        /// <param name="bindingSource">The <see cref="BindingSource"/> of the data.</param>
+        /// <param name="values">The values.</param>
+        /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
+        /// <param name="loggerFactory"></param>
+        public JQueryFormValueProvider(
+            BindingSource bindingSource,
+            IDictionary<string, StringValues> values,
+            CultureInfo culture,
+            ILoggerFactory loggerFactory)
             : base(bindingSource)
         {
             if (bindingSource == null)
@@ -41,10 +59,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             _values = values;
             Culture = culture;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         // Internal for testing
         internal CultureInfo Culture { get; }
+
+        private readonly ILogger _logger;
 
         protected PrefixContainer PrefixContainer
         {

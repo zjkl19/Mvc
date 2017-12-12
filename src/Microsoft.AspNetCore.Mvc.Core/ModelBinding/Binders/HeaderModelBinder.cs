@@ -5,6 +5,8 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -14,6 +16,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class HeaderModelBinder : IModelBinder
     {
+        private readonly ILogger _logger;
+
+        public HeaderModelBinder()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public HeaderModelBinder(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -47,6 +61,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             if (model == null)
             {
+                _logger.LogDebug("Failed to bind value of header {HeaderName} to model. Check if the field name being bound to supports either string or collection of strings.");
+
                 // Silently fail if unable to create an instance or use the current instance. Also reach here in the
                 // typeof(string) case if the header does not exist in the request and in the
                 // typeof(IEnumerable<string>) case if the header does not exist and this is not a top-level object.
@@ -54,6 +70,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
             else
             {
+                _logger.LogDebug("Successfully bound value of header {HeaderName} to model.");
+
                 bindingContext.ModelState.SetModelValue(
                     bindingContext.ModelName,
                     request.Headers.GetCommaSeparatedValues(headerName),

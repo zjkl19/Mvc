@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -11,6 +13,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class BinderTypeModelBinderProvider : IModelBinderProvider
     {
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
+
+        public BinderTypeModelBinderProvider()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public BinderTypeModelBinderProvider(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
@@ -21,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             if (context.BindingInfo.BinderType != null)
             {
-                return new BinderTypeModelBinder(context.BindingInfo.BinderType);
+                return new BinderTypeModelBinder(context.BindingInfo.BinderType, _loggerFactory);
             }
 
             return null;

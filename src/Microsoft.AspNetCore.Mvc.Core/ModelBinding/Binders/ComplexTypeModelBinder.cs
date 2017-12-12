@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -16,6 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class ComplexTypeModelBinder : IModelBinder
     {
         private readonly IDictionary<ModelMetadata, IModelBinder> _propertyBinders;
+        private readonly ILogger _logger;
         private Func<object> _modelCreator;
 
         /// <summary>
@@ -25,6 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// The <see cref="IDictionary{TKey, TValue}"/> of binders to use for binding properties.
         /// </param>
         public ComplexTypeModelBinder(IDictionary<ModelMetadata, IModelBinder> propertyBinders)
+            : this(propertyBinders, new NullLoggerFactory())
         {
             if (propertyBinders == null)
             {
@@ -32,6 +36,26 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             _propertyBinders = propertyBinders;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ComplexTypeModelBinder"/>.
+        /// </summary>
+        /// <param name="propertyBinders">
+        /// The <see cref="IDictionary{TKey, TValue}"/> of binders to use for binding properties.
+        /// </param>
+        /// <param name="loggerFactory"></param>
+        public ComplexTypeModelBinder(
+            IDictionary<ModelMetadata, IModelBinder> propertyBinders,
+            ILoggerFactory loggerFactory)
+        {
+            if (propertyBinders == null)
+            {
+                throw new ArgumentNullException(nameof(propertyBinders));
+            }
+
+            _propertyBinders = propertyBinders;
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />
@@ -199,6 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // level object. So we return false.
             if (bindingContext.ModelMetadata.Properties.Count == 0)
             {
+                _logger.LogDebug("Could not find any properties to bind to for the model type:" + bindingContext.ModelMetadata.UnderlyingOrModelType);
                 return false;
             }
 

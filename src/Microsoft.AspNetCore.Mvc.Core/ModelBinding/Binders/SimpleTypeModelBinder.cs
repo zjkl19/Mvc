@@ -5,6 +5,8 @@ using System;
 using System.ComponentModel;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -14,8 +16,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class SimpleTypeModelBinder : IModelBinder
     {
         private readonly TypeConverter _typeConverter;
+        private readonly ILogger _logger;
 
         public SimpleTypeModelBinder(Type type)
+            : this(type, new NullLoggerFactory())
+        {
+        }
+
+        public SimpleTypeModelBinder(Type type, ILoggerFactory loggerFactory)
         {
             if (type == null)
             {
@@ -23,6 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             _typeConverter = TypeDescriptor.GetConverter(type);
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />

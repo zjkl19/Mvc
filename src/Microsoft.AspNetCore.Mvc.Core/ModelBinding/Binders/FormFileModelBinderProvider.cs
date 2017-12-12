@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -13,6 +15,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class FormFileModelBinderProvider : IModelBinderProvider
     {
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
+
+        public FormFileModelBinderProvider()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public FormFileModelBinderProvider(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
@@ -27,7 +43,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 modelType == typeof(IFormFileCollection) ||
                 typeof(IEnumerable<IFormFile>).IsAssignableFrom(modelType))
             {
-                return new FormFileModelBinder();
+                return new FormFileModelBinder(_loggerFactory);
+            }
+            else
+            {
+                _logger.LogDebug("Cannot bind to model of type {ModelType}. Supported types are ....");
             }
 
             return null;

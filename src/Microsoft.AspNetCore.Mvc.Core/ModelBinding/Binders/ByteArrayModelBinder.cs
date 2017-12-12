@@ -3,6 +3,9 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -11,6 +14,25 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class ByteArrayModelBinder : IModelBinder
     {
+        private readonly ILogger _logger;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ByteArrayModelBinder"/>.
+        /// </summary>
+        public ByteArrayModelBinder()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ByteArrayModelBinder"/>.
+        /// </summary>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/></param>
+        public ByteArrayModelBinder(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -23,6 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
             if (valueProviderResult == ValueProviderResult.None)
             {
+                _logger.FoundNoValueForModelOnRequest(bindingContext.ModelName);
                 return Task.CompletedTask;
             }
 
@@ -32,6 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var value = valueProviderResult.FirstValue;
             if (string.IsNullOrEmpty(value))
             {
+                _logger.FoundNullOrEmptyValueForModelOnRequest(bindingContext.ModelName);
                 return Task.CompletedTask;
             }
 

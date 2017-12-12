@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -12,6 +14,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class DictionaryModelBinderProvider : IModelBinderProvider
     {
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
+
+        public DictionaryModelBinderProvider()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public DictionaryModelBinderProvider(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger(GetType());
+        }
+
         /// <inheritdoc />
         public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
@@ -32,6 +48,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
                 var binderType = typeof(DictionaryModelBinder<,>).MakeGenericType(dictionaryType.GenericTypeArguments);
                 return (IModelBinder)Activator.CreateInstance(binderType, keyBinder, valueBinder);
+            }
+            else
+            {
+                _logger.LogDebug($"Could not create a dicitionary binder for model type {modelType}.");
             }
 
             return null;

@@ -4,6 +4,8 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -13,6 +15,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class QueryStringValueProviderFactory : IValueProviderFactory
     {
+        private readonly ILoggerFactory _loggerFactory;
+
+        public QueryStringValueProviderFactory()
+            : this(new NullLoggerFactory())
+        {
+        }
+
+        public QueryStringValueProviderFactory(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+        }
+
         /// <inheritdoc />
         public Task CreateValueProviderAsync(ValueProviderFactoryContext context)
         {
@@ -24,7 +38,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var valueProvider = new QueryStringValueProvider(
                 BindingSource.Query,
                 context.ActionContext.HttpContext.Request.Query,
-                CultureInfo.InvariantCulture);
+                CultureInfo.InvariantCulture,
+                _loggerFactory);
 
             context.ValueProviders.Add(valueProvider);
 

@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -16,12 +18,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class BinderTypeModelBinder : IModelBinder
     {
         private readonly ObjectFactory _factory;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a new <see cref="BinderTypeModelBinder"/>.
         /// </summary>
         /// <param name="binderType">The <see cref="Type"/> of the <see cref="IModelBinder"/>.</param>
         public BinderTypeModelBinder(Type binderType)
+            : this(binderType, new NullLoggerFactory())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="BinderTypeModelBinder"/>.
+        /// </summary>
+        /// <param name="binderType">The <see cref="Type"/> of the <see cref="IModelBinder"/>.</param>
+        /// <param name="loggerFactory"></param>
+        public BinderTypeModelBinder(Type binderType, ILoggerFactory loggerFactory)
         {
             if (binderType == null)
             {
@@ -38,6 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             _factory = ActivatorUtilities.CreateFactory(binderType, Type.EmptyTypes);
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />
